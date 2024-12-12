@@ -1,0 +1,63 @@
+{
+	"resource_pack_name": "BedrocKEdits",
+	"texture_name": "atlas.items",
+	"texture_data": {
+		"bets_red_wand": {
+			"textures": "textures/items/red_wand"
+		},
+		"bets_blue_wand": {
+			"textures": "textures/items/blue_wand"
+		},
+		"bets_wand": {
+			"textures": "textures/items/wand"
+		},
+		"bets_blue_picker": {
+			"textures": "textures/items/blue_picker"
+		},
+		"bets_red_picker": {
+			"textures": "textures/items/red_picker"
+		},
+		"bets_line": {
+			"textures": "textures/items/bets_line"
+		},
+		"bets_redo": {
+			"textures": "textures/items/bets_redo"
+		},
+		"bets_undo": {
+			"textures": "textures/items/bets_undo"
+		},
+		"bets_bucket": {
+			"textures": "textures/items/bets_bucket"
+		},
+		"bets_menu_block_mode": {
+			"textures":"textures/items/bets_block_m"
+		},
+		"bets_flood": {
+			"textures":"textures/items/bets_flood_fill"
+		},
+		"bets_stack": {
+			"textures":"textures/items/bets/operators/stack"
+		},
+		"bets_menu": {
+			"textures":"textures/items/bets/bets_menu"
+		},
+		"hotbar_nav": {
+			"textures":"textures/items/bets/hotbar_nav"
+		},
+		"bets_save": {
+			"textures":"textures/items/bets/save"
+		},
+		"bets_load": {
+			"textures":"textures/items/bets/load"
+		},
+		"bets_state_slot_1": {
+			"textures":"textures/items/bets/state_slot/s1"
+		},
+		"bets_state_slot_2": {
+			"textures":"textures/items/bets/state_slot/s2"
+		},
+		"bets_state_slot_3": {
+			"textures":"textures/items/bets/state_slot/s3"
+		}
+	}
+}
