@@ -34,8 +34,8 @@ export function saveString(name:string, value: string) {
     deleteString(name);
     let idx =0;
     let pos =0;
-    while (pos < name.length) {
-        world.setDynamicProperty(`${name}#${idx}`, name.substring(pos, pos+CHUNK))
+    while (pos < value.length) {
+        world.setDynamicProperty(`${name}#${idx}`, value.substring(pos, pos+CHUNK))
         pos+=CHUNK
         idx+=CHUNK
     }
