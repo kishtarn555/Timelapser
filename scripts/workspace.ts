@@ -1,4 +1,4 @@
-import { BlockPermutation, BlockVolume, Dimension, PlayerPlaceBlockAfterEvent, system, Vector3, world } from "@minecraft/server";
+import { Block, BlockPermutation, BlockVolume, Dimension, PlayerBreakBlockAfterEvent, PlayerPlaceBlockAfterEvent, system, Vector3, world } from "@minecraft/server";
 import { loadString, saveString } from "./stringDB";
 import { deserializePermutation, serializePermutation } from "./blockSerializer";
 
@@ -83,6 +83,9 @@ export class WorkspaceHandler {
         world.afterEvents.playerPlaceBlock.subscribe(
             this.placeBlock.bind(this)
         );
+        world.afterEvents.playerBreakBlock.subscribe(
+            this.breakBlock.bind(this)
+        );
         const wId = this.workspace.GetId();
         world.setDynamicProperty(`${wId}.start`, system.currentTick);
     }
@@ -91,6 +94,9 @@ export class WorkspaceHandler {
         const wId = this.workspace.GetId();
         world.afterEvents.playerPlaceBlock.unsubscribe(
             this.placeBlock.bind(this)
+        )
+        world.afterEvents.playerBreakBlock.unsubscribe(
+            this.breakBlock.bind(this)
         )
         world.setDynamicProperty(`${wId}.end`, system.currentTick);
     }
@@ -103,17 +109,27 @@ export class WorkspaceHandler {
         if (!this.workspace.GetVolume().isInside(block.location)) {
             return;
         }
+        this.updateBlock(block);
+    }
+    breakBlock(event:PlayerBreakBlockAfterEvent) {
+        const block = event.block;
+        if (block.dimension.id !== this.workspace.GetDimension().id) {
+            return;
+        }
+        if (!this.workspace.GetVolume().isInside(block.location)) {
+            return;
+        }
+        this.updateBlock(block);
+    }
+
+    private updateBlock(block:Block) {
         const wId = this.workspace.GetId();
         let tick = system.currentTick;
         let packet = {
             location: block.location,
             data: serializePermutation(block.permutation)
         };
-        world.sendMessage(`${wId}@${tick}`)
-        world.sendMessage(JSON.stringify(packet))
         saveString(`${wId}@${tick}`, JSON.stringify(packet));
-
-        
     }
 
     async reset() {
@@ -138,12 +154,9 @@ export class WorkspaceHandler {
         const wId = this.workspace.GetId();
         let tick = world.getDynamicProperty(`${wId}.start`)as number | undefined
         let endTick = world.getDynamicProperty(`${wId}.end`) as number | undefined
-        world.sendMessage(`${tick}`);
-        world.sendMessage(`${endTick}`);
         if (tick == null || endTick == null) {
             return;
         }
-        world.sendMessage("playing actually");
         return new Promise <void> ((resolve, reject)=> {
             let id = system.runInterval(()=> {
                 tick = tick as number
@@ -156,7 +169,6 @@ export class WorkspaceHandler {
                 if (read == null) {
                     return;
                 }
-                world.sendMessage(`REPLAYING ${read}`)
                 let parse = JSON.parse(read);
                 this.workspace.GetDimension()
                     .getBlock(parse.location)

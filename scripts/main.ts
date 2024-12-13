@@ -14,7 +14,7 @@ system.afterEvents.scriptEventReceive.subscribe((evt)=> {
     let space =  new Workspace(
         "test",
         {x: 0, y: 60, z:0},
-        {x: 10, y: 100, z:10},
+        {x: 30, y: 100, z:30},
         world.getDimension("overworld")
     );
     controller = new WorkspaceHandler(space);
