@@ -14,7 +14,7 @@ system.afterEvents.scriptEventReceive.subscribe((evt)=> {
     let space =  new Workspace(
         "test",
         {x: 0, y: 60, z:0},
-        {x: 160, y: 100, z:160},
+        {x: 10, y: 100, z:10},
         world.getDimension("overworld")
     );
     controller = new WorkspaceHandler(space);
@@ -26,8 +26,21 @@ system.afterEvents.scriptEventReceive.subscribe((evt)=> {
     if (evt.id!==`${NAMESPACE}:reset`) {
         return;
     }
+    world.sendMessage("Stopping");
+    controller.stopRecording();
     world.sendMessage("Reseting");
     controller.reset().then(
+        ()=>world.sendMessage("DONE")
+    );    
+}, {
+    namespaces: ["tmlp"]
+})
+system.afterEvents.scriptEventReceive.subscribe((evt)=> {
+    if (evt.id!==`${NAMESPACE}:play`) {
+        return;
+    }
+    world.sendMessage("Playing");
+    controller.play().then(
         ()=>world.sendMessage("DONE")
     );    
 }, {

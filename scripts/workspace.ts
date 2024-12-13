@@ -1,4 +1,6 @@
-import { BlockVolume, Dimension, PlayerPlaceBlockAfterEvent, system, Vector3, world } from "@minecraft/server";
+import { BlockPermutation, BlockVolume, Dimension, PlayerPlaceBlockAfterEvent, system, Vector3, world } from "@minecraft/server";
+import { loadString, saveString } from "./stringDB";
+import { deserializePermutation, serializePermutation } from "./blockSerializer";
 
 export class Workspace {
     private space: BlockVolume
@@ -67,6 +69,9 @@ export class WorkspaceHandler {
 
     startRecording() {
         for (let {id, from, to} of this.workspace.GetStructureAreas()) {
+            if (world.structureManager.get(id)) {
+                world.structureManager.delete(id);
+            }
             world.structureManager.createFromWorld(
                 id,
                 this.workspace.GetDimension(),
@@ -78,12 +83,16 @@ export class WorkspaceHandler {
         world.afterEvents.playerPlaceBlock.subscribe(
             this.placeBlock.bind(this)
         );
+        const wId = this.workspace.GetId();
+        world.setDynamicProperty(`${wId}.start`, system.currentTick);
     }
-
+    
     stopRecording() {
+        const wId = this.workspace.GetId();
         world.afterEvents.playerPlaceBlock.unsubscribe(
             this.placeBlock.bind(this)
         )
+        world.setDynamicProperty(`${wId}.end`, system.currentTick);
     }
 
     placeBlock(event:PlayerPlaceBlockAfterEvent) {
@@ -94,6 +103,17 @@ export class WorkspaceHandler {
         if (!this.workspace.GetVolume().isInside(block.location)) {
             return;
         }
+        const wId = this.workspace.GetId();
+        let tick = system.currentTick;
+        let packet = {
+            location: block.location,
+            data: serializePermutation(block.permutation)
+        };
+        world.sendMessage(`${wId}@${tick}`)
+        world.sendMessage(JSON.stringify(packet))
+        saveString(`${wId}@${tick}`, JSON.stringify(packet));
+
+        
     }
 
     async reset() {
@@ -112,6 +132,38 @@ export class WorkspaceHandler {
             }
         });
         return promise;
+    }
+
+    async play() {
+        const wId = this.workspace.GetId();
+        let tick = world.getDynamicProperty(`${wId}.start`)as number | undefined
+        let endTick = world.getDynamicProperty(`${wId}.end`) as number | undefined
+        world.sendMessage(`${tick}`);
+        world.sendMessage(`${endTick}`);
+        if (tick == null || endTick == null) {
+            return;
+        }
+        world.sendMessage("playing actually");
+        return new Promise <void> ((resolve, reject)=> {
+            let id = system.runInterval(()=> {
+                tick = tick as number
+                tick++;
+                if (tick === endTick!) {
+                    resolve();
+                    system.clearRun(id);
+                }
+                let read = loadString(`${wId}@${tick}`);
+                if (read == null) {
+                    return;
+                }
+                world.sendMessage(`REPLAYING ${read}`)
+                let parse = JSON.parse(read);
+                this.workspace.GetDimension()
+                    .getBlock(parse.location)
+                    ?.setPermutation(deserializePermutation(parse.data))
+
+            });
+        });
     }
 
 
